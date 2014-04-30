@@ -1,0 +1,20 @@
+2 : 1 to delete the folder structure, 2 otherwise
+2 : 1 to run the entire computation, 2 to run by Subbasin, 3 by HRU
+10 : No of threads to spawn
+src/bd_nit_pareto_CR.txt 200
+src/bd_nit_pareto_RG.txt 178
+src/bd_nit_pareto_CC.txt 194
+src/bd_nit_pareto_AA.txt 181
+src/bd_nit_pareto_CW.txt 126
+src/bd_nit_pareto_DWM.txt 48
+src/bd_nit_pareto_BR.txt 167
+src/bd_nit_pareto_SB.txt 45
+src/bd_nit_pareto_FS.txt 155
+src/blc_nit_pareto_RG.txt 137
+src/blc_nit_pareto_CC.txt 128
+src/blc_nit_pareto_AA.txt 133
+src/blc_nit_pareto_CW.txt 75
+src/blc_nit_pareto_DWM.txt 61
+src/blc_nit_pareto_BR.txt 134
+src/blc_nit_pareto_SB.txt 30
+src/blc_nit_pareto_FS.txt 141
