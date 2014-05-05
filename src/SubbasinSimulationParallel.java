@@ -18,18 +18,18 @@ import org.apache.commons.io.FileUtils;
 public class SubbasinSimulationParallel
 {
 	String FILE_NAME;
-	int COMPUTATION_NUMBER;
+	List<Integer> computationNumbers;
 	String RESULTS_FOLDER;
 	int N_THREADS;
 	int plotComputation;
 	boolean deleteDirectory;
 	
-	public SubbasinSimulationParallel(String fileName, int computationNumber, int n_threads, int plotComputation, boolean deleteDirectory)
+	public SubbasinSimulationParallel(String fileName, List<Integer> computationNumbers, int n_threads, int plotComputation, boolean deleteDirectory)
 	{
 		FILE_NAME = fileName;
-		COMPUTATION_NUMBER = computationNumber;
+		this.computationNumbers = computationNumbers;
 		N_THREADS = n_threads;
-		RESULTS_FOLDER = fileName.split("/")[1].split(".txt")[0] + "_" + computationNumber;
+		RESULTS_FOLDER = fileName.split("/")[1].split(".txt")[0] + "_" + computationNumbers.get(0);
 		
 		File dir = new File(RESULTS_FOLDER);
 		if (dir.exists() && deleteDirectory) {
@@ -107,38 +107,41 @@ public class SubbasinSimulationParallel
 		Map<String, Float> baseCaseResultValues = getBaseCaseResultValues();
 		
 		if (plotComputation == 1) {
-			generateEntireComputationInputFile(computation);
-			
-			Long start = System.currentTimeMillis();
-			
-			result = runOCMExecutable();
-			
-			Long end = System.currentTimeMillis();
-			
-			if (result == -1){
-				System.out.println("In use");
-				return;
-			}else if (result == -2){
-				System.out.println("Failed");
-				return;
+			int m = N_THREADS;
+			int n_temp = computationNumbers.size();
+			int m_temp = N_THREADS;
+			int j = 0;
+			List<Thread> threads = new ArrayList<>();
+
+			for (int i=1; i<=m; i++) {
+				List<Integer> computationNumbersForThread = new ArrayList<>();			
+				int temp = (int) Math.ceil((float)n_temp/m_temp);
+				
+				int k = 0;
+				while (k < temp) {
+					computationNumbersForThread.add(computationNumbers.get(j));
+					j++;
+					k++;
+				}
+				
+				EntireComputationSimulation thread = new EntireComputationSimulation(FILE_NAME, 
+																					 RESULTS_FOLDER, 
+																					 computationNumbersForThread,
+																					 sortedComputationAreaMap,
+																					 i);
+				
+				n_temp -= temp;
+				m_temp--;
+
+				thread.start();
+				threads.add(thread);
 			}
 			
-			String parentFolder;
-			if (FILE_NAME.contains("bd")) {
-				 parentFolder = "ocm/BigDitchWs/";
-			} else {
-				parentFolder = "ocm/BigLongCreekWs/";
+			for (Thread t : threads ) {
+				t.join();
 			}
 			
-			copyFile(parentFolder + "ClientRequestOutput.txt", RESULTS_FOLDER + "/client_output_entire_computation.txt");
-			copyFile(parentFolder + "output.hru", RESULTS_FOLDER + "/output.hru");
-			copyFile(parentFolder + "output.rch", RESULTS_FOLDER + "/output.rch");
-			copyFile(parentFolder + "output.sed", RESULTS_FOLDER + "/output.sed");
-			copyFile(parentFolder + "output.std", RESULTS_FOLDER + "/output.std");
-			copyFile(parentFolder + "output.sub", RESULTS_FOLDER + "/output.sub");
-			copyFile(parentFolder + "watout.dat", RESULTS_FOLDER + "/watout.dat");
-			
-			System.out.println("Entire Computation Simulated : " + (((double) end - start)/1000));
+			System.out.println();
 		} else {
 			BufferedWriter resultWrite = new BufferedWriter(new FileWriter(RESULTS_FOLDER + "/result.csv"));
 			resultWrite.write("Subbasin, SED, NIT, LED\n");
@@ -424,7 +427,7 @@ public class SubbasinSimulationParallel
 		
 		for (Entry<String, Float> e : sortedComputationAreaMap.entrySet()) {
 			count++;
-			if (count == COMPUTATION_NUMBER) {
+			if (count == computationNumbers.get(0)) {
 				s = e.getKey();
 			}
 		}
@@ -453,7 +456,7 @@ public class SubbasinSimulationParallel
 
 		br.close();
 		
-		if (COMPUTATION_NUMBER > (nlines - 1)) {
+		if (computationNumbers.get(0) > (nlines - 1)) {
 			System.out.println("Total number of  computations are : " + (nlines - 1) + ". Please enter an appropriate number.");
 			return true;
 		} else {

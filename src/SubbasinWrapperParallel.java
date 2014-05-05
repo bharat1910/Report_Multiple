@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SubbasinWrapperParallel
 {
@@ -26,7 +28,12 @@ public class SubbasinWrapperParallel
 		while ((str = br.readLine()) != null) {
 			strList = str.split(" ");
 			
-			SubbasinSimulationParallel s = new SubbasinSimulationParallel(strList[0], Integer.parseInt(strList[1]), n_threads, plotComputation, deleteDirectory);
+			List<Integer> computations = new ArrayList<>();
+			for (int i=1; i<strList.length; i++) {
+				computations.add(Integer.parseInt(strList[i]));
+			}
+			
+			SubbasinSimulationParallel s = new SubbasinSimulationParallel(strList[0], computations, n_threads, plotComputation, deleteDirectory);
 			s.simulate();
 		}
 		
